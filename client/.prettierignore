@@ -1,0 +1,10 @@
+node_modules
+coverage
+/**/__generated__/*
+babel.config.js
+index.js
+metro.config.js
+apollo.config.js
+react-native.config.js
+setupTests.js
+fileTransformer.js
