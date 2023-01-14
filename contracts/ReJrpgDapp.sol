@@ -187,6 +187,9 @@ contract ReJrpgDapp is ERC721 {
         string memory strAttackDamage = Strings.toString(
             charAttributes.attackDamage
         );
+        string memory strDodgeChance = Strings.toString(
+            charAttributes.dodgeChance
+        );
 
         string memory json = Base64.encode(
             abi.encodePacked(
@@ -202,6 +205,8 @@ contract ReJrpgDapp is ERC721 {
                 strMaxHp,
                 '}, { "trait_type": "DMG", "value": ',
                 strAttackDamage,
+                '}, { "trait_type": "DODGE", "value": ',
+                strDodgeChance,
                 "} ]}"
             )
         );
