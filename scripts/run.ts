@@ -7,10 +7,12 @@ async function main() {
     "Qma7tzEDBsmbz16J3GM5QnwuDnbDcwsce34yTyt4a9iuW9"], // Images
     [75, 300, 450], // HP
     [300, 225, 150], // DMG
+    [7, 3, 2], // DODGE
     "TYRANT",
     "QmUhfXcHbWixqR8GGgvFQfzrnafirMGx8panxuVaoAhsPn",
     9999,
-    49
+    49,
+    1
   );
   
   await gameContract.deployed();

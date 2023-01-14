@@ -24,6 +24,7 @@ contract ReJrpgDapp is ERC721 {
         uint256 hp;
         uint256 maxHp;
         uint256 attackDamage;
+        uint256 dodgeChance;
     }
 
     struct BigBoss {
@@ -32,6 +33,7 @@ contract ReJrpgDapp is ERC721 {
         uint256 hp;
         uint256 maxHp;
         uint256 attackDamage;
+        uint256 dodgeChance;
     }
 
     BigBoss public bigBoss;
@@ -74,10 +76,12 @@ contract ReJrpgDapp is ERC721 {
         string[] memory characterImageURIs,
         uint256[] memory characterHp,
         uint256[] memory characterAttackDmg,
+        uint256[] memory characterDodgeChance,
         string memory bossName,
         string memory bossImageURI,
         uint256 bossHp,
-        uint256 bossAttackDamage
+        uint256 bossAttackDamage,
+        uint256 bossDodgeChance
     )
         // Below, you can also see I added some special identifier symbols for our NFT.
         // This is the name and symbol for our token, ex Ethereum and ETH. I just call mine
@@ -90,7 +94,8 @@ contract ReJrpgDapp is ERC721 {
             imageURI: bossImageURI,
             hp: bossHp,
             maxHp: bossHp,
-            attackDamage: bossAttackDamage
+            attackDamage: bossAttackDamage,
+            dodgeChance: bossDodgeChance
         });
 
         console.log(
@@ -110,7 +115,8 @@ contract ReJrpgDapp is ERC721 {
                     imageURI: characterImageURIs[i],
                     hp: characterHp[i],
                     maxHp: characterHp[i],
-                    attackDamage: characterAttackDmg[i]
+                    attackDamage: characterAttackDmg[i],
+                    dodgeChance: characterDodgeChance[i]
                 })
             );
 
@@ -147,7 +153,8 @@ contract ReJrpgDapp is ERC721 {
             imageURI: defaultCharacters[_characterIndex].imageURI,
             hp: defaultCharacters[_characterIndex].hp,
             maxHp: defaultCharacters[_characterIndex].maxHp,
-            attackDamage: defaultCharacters[_characterIndex].attackDamage
+            attackDamage: defaultCharacters[_characterIndex].attackDamage,
+            dodgeChance: defaultCharacters[_characterIndex].dodgeChance
         });
 
         console.log(
@@ -206,6 +213,13 @@ contract ReJrpgDapp is ERC721 {
         return output;
     }
 
+    function randomInt(uint _modulus) internal returns(uint) {
+        randNonce++;                                                // increase nonce
+        return uint(keccak256(abi.encodePacked(block.timestamp,     // `now` is an alias for 'block.timestamp', but it's depricated
+                                          msg.sender,               // your address
+                                          randNonce))) % _modulus;  // modulo using the _modulus argument
+    }
+
     function attackBoss() public {
         // Get the state of the player's NFT.
         uint256 nftTokenIdOfPlayer = nftHolders[msg.sender];
@@ -235,19 +249,31 @@ contract ReJrpgDapp is ERC721 {
         // Allow player to attack boss.
         if (bigBoss.hp < player.attackDamage) {
             bigBoss.hp = 0;
+            console.log("%s attacked boss. New boss hp: %s", player.name, bigBoss.hp);
         } else {
-            bigBoss.hp = bigBoss.hp - player.attackDamage;
+            // by passing 10 as the mod, we elect to only grab the last digit (0-9) of the hash!
+            if (randomInt(10) > bigBoss.dodgeChance) {
+                bigBoss.hp = bigBoss.hp - player.attackDamage;
+                console.log("%s attacked boss. New boss hp: %s", player.name, bigBoss.hp);
+            } else {
+                console.log("%s missed!", player.name);
+            }
         }
 
         // Allow boss to attack player.
         if (player.hp < bigBoss.attackDamage) {
             player.hp = 0;
+            console.log("%s attacked player. New player hp: %s\n", bigBoss.name, player.hp);
         } else {
-            player.hp = player.hp - bigBoss.attackDamage;
+            // by passing 10 as the mod, we elect to only grab the last digit (0-9) of the hash!
+            // boss has 50% to miss
+            if (randomInt(10) > player.dodgeChance) {
+                player.hp = player.hp - bigBoss.attackDamage;
+                console.log("%s attacked player. New player hp: %s\n", bigBoss.name, player.hp);
+            } else {
+                console.log("%s missed!\n", bigBoss.name);
+            }
         }
-
-        console.log("Player attacked boss. New boss hp: %s", bigBoss.hp);
-        console.log("Boss attacked player. New player hp: %s\n", player.hp);
 
         emit AttackComplete(msg.sender, bigBoss.hp, player.hp);
     }
